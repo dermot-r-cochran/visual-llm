@@ -9,7 +9,6 @@ import pytest
 from hidl.parser import extract_json, parse_hidl_response
 from hidl.schema import HIDLAnnotation
 
-
 # ---------------------------------------------------------------------------
 # Sample valid HIDL JSON payloads
 # ---------------------------------------------------------------------------

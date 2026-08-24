@@ -7,16 +7,15 @@ import json
 import pytest
 
 from hidl.schema import (
-    HIDLAnnotation,
     L0,
     L1,
-    L1Subject,
     L2,
+    L3,
+    HIDLAnnotation,
+    L1Subject,
     L2Object,
     L2Relation,
-    L3,
 )
-
 
 # ---------------------------------------------------------------------------
 # Fixtures

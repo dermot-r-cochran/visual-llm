@@ -8,7 +8,6 @@ from __future__ import annotations
 
 from hidl.modes import AnnotationMode
 
-
 # ---------------------------------------------------------------------------
 # System prompt template
 # ---------------------------------------------------------------------------

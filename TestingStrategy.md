@@ -40,13 +40,14 @@ that a vendor did.
 
 ## Known gaps (candidates for next)
 
-- **No CI.** The suite is dependency-free and sub-second — the cheapest
-  possible workflow (checkout, setup-python, `pip install -e ".[dev]"`,
-  `pytest`, `ruff check .`) would make the 92 tests enforced instead of
-  voluntary. `ruff` is already configured in `pyproject.toml` and
-  `pytest-cov` already declared; neither currently runs anywhere.
+- ~~No CI~~ — **closed 2026-08-24**: `.github/workflows/ci.yml` runs pytest
+  on Python 3.9 (the declared floor) and 3.13 with a coverage ratchet at the
+  measured 86% baseline, plus a `ruff check .` job — added green, with the
+  outstanding 39 findings fixed in the same change (mostly modern-annotation
+  upgrades; every touched file defers annotation evaluation via
+  `from __future__ import annotations`, so the new-style unions stay valid on
+  3.9).
 - Round-trip properties (parse → render → parse is a fixed point) are a
   natural `hypothesis` target for a parser/renderer pair and would generalise
   the fixed-case tests.
-- Coverage is not measured; once CI exists, ratchet it at the measured
-  baseline.
+- ~~Coverage is not measured~~ — the CI ratchet above holds it at ≥86%.

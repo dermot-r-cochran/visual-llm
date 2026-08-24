@@ -6,26 +6,26 @@ large-scale scanning and clustering.
 """
 
 from hidl.annotator import HIDLAnnotator
+from hidl.modes import AnnotationMode
 from hidl.schema import (
-    HIDLAnnotation,
     L0,
     L1,
     L2,
     L3,
+    HIDLAnnotation,
     L1Subject,
     L2Object,
     L2Relation,
 )
-from hidl.modes import AnnotationMode
 
 __all__ = [
-    "HIDLAnnotator",
-    "HIDLAnnotation",
-    "AnnotationMode",
     "L0",
     "L1",
     "L2",
     "L3",
+    "AnnotationMode",
+    "HIDLAnnotation",
+    "HIDLAnnotator",
     "L1Subject",
     "L2Object",
     "L2Relation",

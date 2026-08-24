@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import pytest
-
 from hidl.modes import AnnotationMode
 from hidl.prompts import build_system_prompt, build_user_message
 

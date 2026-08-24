@@ -2,17 +2,15 @@
 
 from __future__ import annotations
 
-import pytest
-
 from hidl.vocabulary import (
-    canonicalize_scene,
-    canonicalize_subject,
-    canonicalize_signal,
-    canonicalize_predicate,
-    SCENE_LABELS,
-    SUBJECT_LABELS,
-    SIGNAL_LABELS,
     RELATION_PREDICATES,
+    SCENE_LABELS,
+    SIGNAL_LABELS,
+    SUBJECT_LABELS,
+    canonicalize_predicate,
+    canonicalize_scene,
+    canonicalize_signal,
+    canonicalize_subject,
 )
 
 
