@@ -13,7 +13,6 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Union
 
-
 # Type alias for an image source: file path, bytes, or a URL string.
 ImageSource = Union[str, Path, bytes]
 
@@ -94,7 +93,7 @@ class OpenAIVisionBackend(VisionBackend):
         temperature: float = 0.0,
     ) -> None:
         try:
-            import openai  # noqa: PLC0415  (lazy import for optional dep)
+            import openai
         except ImportError as exc:
             raise ImportError(
                 "The 'openai' package is required for OpenAIVisionBackend. "

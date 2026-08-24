@@ -13,7 +13,6 @@ from typing import Any
 
 from hidl.schema import HIDLAnnotation
 
-
 # Regex to strip markdown code fences (```json … ``` or ``` … ```)
 _CODE_FENCE_RE = re.compile(
     r"```(?:json)?\s*([\s\S]*?)\s*```",

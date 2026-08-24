@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from enum import Enum
 import re
+from enum import Enum
 
 
 class AnnotationMode(str, Enum):

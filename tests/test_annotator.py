@@ -4,23 +4,15 @@ from __future__ import annotations
 
 import json
 from typing import Any
-from unittest.mock import MagicMock
 
 import pytest
 
-from hidl.annotator import HIDLAnnotator, _canonicalize_annotation
-from hidl.backends import VisionBackend, ImageSource
+from hidl.annotator import HIDLAnnotator
+from hidl.backends import ImageSource, VisionBackend
 from hidl.modes import AnnotationMode
 from hidl.schema import (
     HIDLAnnotation,
-    L0,
-    L1,
-    L1Subject,
-    L2,
-    L2Object,
-    L2Relation,
 )
-
 
 # ---------------------------------------------------------------------------
 # Mock backend

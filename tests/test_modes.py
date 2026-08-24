@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import pytest
-
 from hidl.modes import AnnotationMode, infer_mode
 
 

@@ -7,19 +7,16 @@ objects from images.
 
 from __future__ import annotations
 
-from pathlib import Path
-from typing import Optional, Union
-
-from hidl.backends import VisionBackend, ImageSource
+from hidl.backends import ImageSource, VisionBackend
 from hidl.modes import AnnotationMode, infer_mode
 from hidl.parser import parse_hidl_response
 from hidl.prompts import build_system_prompt, build_user_message
 from hidl.schema import HIDLAnnotation
 from hidl.vocabulary import (
+    canonicalize_predicate,
     canonicalize_scene,
     canonicalize_signal,
     canonicalize_subject,
-    canonicalize_predicate,
 )
 
 
@@ -61,8 +58,8 @@ class HIDLAnnotator:
         image: ImageSource,
         *,
         image_id: str = "unknown",
-        mode: Optional[Union[AnnotationMode, str]] = None,
-        instruction: Optional[str] = None,
+        mode: AnnotationMode | str | None = None,
+        instruction: str | None = None,
     ) -> HIDLAnnotation:
         """Generate a HIDL annotation for a single image.
 
@@ -105,8 +102,8 @@ class HIDLAnnotator:
         self,
         images: list[tuple[str, ImageSource]],
         *,
-        mode: Optional[Union[AnnotationMode, str]] = None,
-        instruction: Optional[str] = None,
+        mode: AnnotationMode | str | None = None,
+        instruction: str | None = None,
     ) -> list[HIDLAnnotation]:
         """Annotate a batch of images sequentially.
 
@@ -130,8 +127,8 @@ class HIDLAnnotator:
 
     @staticmethod
     def _resolve_mode(
-        mode: Optional[Union[AnnotationMode, str]],
-        instruction: Optional[str],
+        mode: AnnotationMode | str | None,
+        instruction: str | None,
     ) -> AnnotationMode:
         if mode is not None:
             if isinstance(mode, AnnotationMode):

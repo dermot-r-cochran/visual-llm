@@ -7,9 +7,8 @@ are represented as ``Optional`` fields to allow partial annotations.
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass, field, asdict
-from typing import Any, Optional
-
+from dataclasses import asdict, dataclass, field
+from typing import Any
 
 # ---------------------------------------------------------------------------
 # Level 0 – one-line abstraction
@@ -190,8 +189,8 @@ class HIDLAnnotation:
     id: str
     l0: L0
     l1: L1
-    l2: Optional[L2] = None
-    l3: Optional[L3] = None
+    l2: L2 | None = None
+    l3: L3 | None = None
 
     def to_dict(self) -> dict[str, Any]:
         """Return a serialisable ``dict`` representation."""
@@ -218,7 +217,7 @@ class HIDLAnnotation:
         return json.dumps(self.to_dict(), indent=indent, ensure_ascii=False)
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> "HIDLAnnotation":
+    def from_dict(cls, data: dict[str, Any]) -> HIDLAnnotation:
         """Deserialise a :class:`HIDLAnnotation` from a plain ``dict``.
 
         Args:
@@ -254,7 +253,7 @@ class HIDLAnnotation:
             quality_flags=list(l1_data.get("quality_flags", [])),
         )
 
-        l2: Optional[L2] = None
+        l2: L2 | None = None
         if "l2" in data and data["l2"] is not None:
             l2_data = data["l2"]
             l2_objects = [
@@ -275,7 +274,7 @@ class HIDLAnnotation:
             ]
             l2 = L2(objects=l2_objects, relations=l2_relations)
 
-        l3: Optional[L3] = None
+        l3: L3 | None = None
         if "l3" in data and data["l3"] is not None:
             l3_data = data["l3"]
             l3 = L3(
