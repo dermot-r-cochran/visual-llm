@@ -38,3 +38,28 @@ The **vocabulary** (`hidl/vocabulary.py`) is frozensets of canonical labels plus
 - The vocabulary lives in **two places**: the frozensets/aliases in `hidl/vocabulary.py` and the label lists written into the prompt template in `hidl/prompts.py`. A vocabulary change edits both, plus the tests, in the same commit — the schema/vocabulary tests are the specification, not incidental assertions (see `TestingStrategy.md`).
 - Keep model calls out of the tests. The suite is pure — no network, no model, no runtime dependencies — which is why a red test always means the *language* changed, never that a vendor did. Testing mechanics, the per-file map of what each test file pins, and the rules for extending the suite are in `TestingStrategy.md`.
 - New parser behaviour lands with both the accepting case and the rejecting case.
+
+## Related repositories
+
+The map of Dermot's public repositories and what crosses between them is
+`RELATED-REPOSITORIES.md` in `dermot-r-cochran/star-rangers`; this section
+names only this repository's own neighbours (added 2026-09-29 at his
+direction). Nothing below shares code or data with this repository; what is
+shared is stated exactly.
+
+- **`dermot-r-cochran/dermot-cochran-photography`** is the author's own
+  photo set, and this library is built for very large photo sets; nothing
+  crosses between them. HIDL reads no frame from the portfolio and the
+  portfolio carries no annotation from HIDL. Keep it that way unless a
+  decision says otherwise, since the suite here never calls a model.
+- **Siblings by convention:** `careful-memory`, `world-model`, `foundation-model`,
+  `shadow-architect`, `visual-llm`, `swarm`, `Voting` and
+  `architecture-definition-model` all carry a `TestingStrategy.md` that keeps
+  testing mechanics apart from the repository's rules; six run CI coverage as a
+  ratchet at the measured baseline (`swarm`, `careful-memory`, `world-model`,
+  `foundation-model`, `shadow-architect`, `visual-llm`); five keep
+  architecture decision records with a guard test each (`swarm`,
+  `careful-memory`, `world-model`, `shadow-architect`, the ADM). When a
+  convention here needs changing, those are the reference for how it is done
+  in the account, and a change to the convention itself is worth landing in
+  all of them or in none.
