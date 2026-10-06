@@ -216,6 +216,21 @@ class HIDLAnnotation:
         """
         return json.dumps(self.to_dict(), indent=indent, ensure_ascii=False)
 
+    def l0_key(self) -> tuple[str, tuple[str, ...], tuple[str, ...]]:
+        """Return a hashable key for grouping annotations by their L0 summary.
+
+        The key is ``(scene, subjects, signals)`` with subjects and signals
+        de-duplicated and sorted, so two annotations whose L0 lists differ
+        only in order or repetition share a key.  The annotation itself is
+        not changed.  Labels are compared as stored: run with
+        canonicalisation on (the default) so aliases share a key.
+        """
+        return (
+            self.l0.scene,
+            tuple(sorted(set(self.l0.subjects))),
+            tuple(sorted(set(self.l0.signals))),
+        )
+
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> HIDLAnnotation:
         """Deserialise a :class:`HIDLAnnotation` from a plain ``dict``.

@@ -198,6 +198,25 @@ class TestHIDLAnnotationSerialisation:
 
 
 # ---------------------------------------------------------------------------
+# HIDLAnnotation.l0_key
+# ---------------------------------------------------------------------------
+
+
+class TestHIDLAnnotationL0Key:
+    def test_key_ignores_order_and_repeats(self):
+        ann = make_fast_scan_annotation()
+        ann.l0.subjects = ["person", "car", "person"]
+        assert ann.l0_key() == ("urban-street", ("car", "person"), ("low-light",))
+
+    def test_key_leaves_annotation_unchanged(self):
+        ann = make_fast_scan_annotation()
+        before = ann.to_json()
+        hash(ann.l0_key())
+        assert ann.to_json() == before
+        assert ann.l0.subjects == ["person", "car"]
+
+
+# ---------------------------------------------------------------------------
 # HIDLAnnotation.from_dict round-trip
 # ---------------------------------------------------------------------------
 

@@ -7,7 +7,7 @@ How HIDL is tested, and why the suite can afford to be strict.
 HIDL's promise is **compact, consistent, hierarchical JSON** — a language,
 not a service. A language is testable in a way a service never is: zero
 runtime dependencies, no network, no model calls, so every property of the
-notation (schema, vocabulary, parsing, rendering modes, prompt assembly) can
+notation (schema, vocabulary, parsing, annotation modes, prompt assembly) can
 be pinned exactly and run in a fraction of a second. The suite leans into
 that: 92 tests across six files, all pure, all verified passing locally on
 2026-08-24.
@@ -20,7 +20,7 @@ that: 92 tests across six files, all pure, all verified passing locally on
 | `test_vocabulary.py` | the controlled vocabulary — the terms the language admits |
 | `test_parser.py` | text → structure, including malformed input |
 | `test_annotator.py` | the annotation pipeline that produces documents |
-| `test_modes.py` | the rendering/detail modes and their invariants |
+| `test_modes.py` | the annotation detail modes (fast-scan, detailed, refinement) and their invariants |
 | `test_prompts.py` | the prompt templates handed to a vision model |
 
 Run: `pytest` (config in `pyproject.toml`). The `openai` extra is optional
@@ -47,7 +47,7 @@ that a vendor did.
   upgrades; every touched file defers annotation evaluation via
   `from __future__ import annotations`, so the new-style unions stay valid on
   3.9).
-- Round-trip properties (parse → render → parse is a fixed point) are a
-  natural `hypothesis` target for a parser/renderer pair and would generalise
-  the fixed-case tests.
+- Round-trip properties (parse → `to_json()` → parse is a fixed point) are a
+  natural `hypothesis` target for the parser and `HIDLAnnotation.to_json()`
+  (there is no separate renderer) and would generalise the fixed-case tests.
 - ~~Coverage is not measured~~ — the CI ratchet above holds it at ≥86%.

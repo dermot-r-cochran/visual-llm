@@ -204,6 +204,27 @@ class TestAnnotatorCanonicalization:
         ann = annotator.annotate(b"fake")
         assert ann.l0.subjects == ["automobile"]
 
+    def test_alias_replies_share_l0_key(self):
+        def reply(subjects: list[str]) -> dict[str, Any]:
+            return {
+                "id": "X",
+                "l0": {"scene": "street", "subjects": subjects, "signals": []},
+                "l1": {
+                    "scene": "street",
+                    "subjects": [],
+                    "attributes": [],
+                    "signals": [],
+                    "quality_flags": [],
+                },
+            }
+
+        first = HIDLAnnotator(MockVisionBackend(reply(["car", "pedestrian"]))).annotate(b"fake")
+        second = HIDLAnnotator(
+            MockVisionBackend(reply(["person", "automobile", "man"]))
+        ).annotate(b"fake")
+        assert first.l0_key() == second.l0_key()
+        assert first.l0_key() == ("urban-street", ("car", "person"), ())
+
 
 # ---------------------------------------------------------------------------
 # Batch annotation
@@ -218,8 +239,11 @@ class TestAnnotatorBatch:
         assert len(results) == 3
 
     def test_batch_preserves_order(self):
-        # Each call returns the same mock response; just verify length and types
-        annotator = HIDLAnnotator(MockVisionBackend(FAST_SCAN_RESPONSE))
-        images = [(f"IMG_{i:04d}", b"fake") for i in range(5)]
+        # A reply without an id takes the caller's image_id, so each result
+        # carries the id of the image it came from and order is observable.
+        no_id = {k: v for k, v in FAST_SCAN_RESPONSE.items() if k != "id"}
+        annotator = HIDLAnnotator(MockVisionBackend(no_id))
+        images = [(f"IMG_{i:04d}", b"fake") for i in (3, 0, 4, 1, 2)]
         results = annotator.annotate_batch(images)
         assert all(isinstance(r, HIDLAnnotation) for r in results)
+        assert [r.id for r in results] == [img_id for img_id, _ in images]
