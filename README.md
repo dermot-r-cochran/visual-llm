@@ -99,6 +99,15 @@ L1 fields against the controlled vocabulary after parsing, which is what makes
 two annotations of the same scene actually compare equal. Turn it off only if
 the backend's raw labels are wanted.
 
+`HIDLAnnotation.l0_key()` gives `(scene, subjects, signals)` with the lists
+de-duplicated and sorted, so annotations can be grouped by their L0 summary:
+
+```python
+groups = {}
+for ann in annotations:
+    groups.setdefault(ann.l0_key(), []).append(ann)
+```
+
 ---
 
 ## Backends
