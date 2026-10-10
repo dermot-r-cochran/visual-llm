@@ -66,3 +66,23 @@ jobs:
 
       - name: ruff check
         run: ruff check .
+
+  docs:
+    # Standard library only, so nothing is installed. Fails on a README test
+    # citation that names no test, a broken relative link, a second
+    # front-matter block, and a README count or table that disagrees with
+    # the code. Added 2026-10-10 with the README-proof convention; see
+    # TestingStrategy.md.
+    name: docs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Doc check
+        run: python .github/scripts/check_docs.py
