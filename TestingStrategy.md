@@ -28,6 +28,22 @@ and nothing in the tests requires it — model integration stays out of the
 suite by design, so a red test always means the *language* changed, never
 that a vendor did.
 
+## The doc check (`.github/scripts/check_docs.py`)
+
+Added 2026-10-10 with the README-proof convention: every capability row and
+claim in the README names the test that proves it, or says "no test yet" (the
+image sources and `OpenAIVisionBackend`, which the suite never calls). The
+script is standard library only and runs as its own `docs` job in CI. It
+fails on a README citation (`tests/<file>.py::<name>`) whose file or name does
+not exist, a relative link in the README or under `docs/` that resolves to
+nothing, a front-matter block below the top of any Markdown file, and a
+README count or table that disagrees with the code: the four levels and the
+fields the L0 and L3 rows name against `hidl/schema.py`, the three modes
+against `AnnotationMode`, and "the core library has none" against
+`pyproject.toml`'s empty `dependencies` and its `openai` extra. What it
+cannot check is that a cited test proves the claim beside it; that stays a
+reviewer's question.
+
 ## Extending
 
 - A vocabulary or schema change is a **language change**: update the schema

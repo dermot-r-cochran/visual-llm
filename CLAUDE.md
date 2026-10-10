@@ -17,7 +17,7 @@ pytest --cov=hidl --cov-fail-under=86   # what CI runs — coverage is a ratchet
 ruff check .                    # lint (CI job; config in pyproject.toml: line-length 99, target py39)
 ```
 
-CI (`.github/workflows/ci.yml`) runs the coverage-gated pytest on Python 3.9 and 3.13 — the declared floor and current stable — plus `ruff check .`. Two consequences worth knowing before editing: raise the `--cov-fail-under` ratchet only in the change that adds the tests that earn it, and keep `from __future__ import annotations` at the top of modules so new-style unions (`X | None`) stay valid on 3.9.
+CI (`.github/workflows/ci.yml`) runs the coverage-gated pytest on Python 3.9 and 3.13 — the declared floor and current stable — plus `ruff check .` and a stdlib doc check (`python .github/scripts/check_docs.py`: README test citations exist, links resolve, one front-matter block at most, the levels, modes and dependency claims match the code). Every README row or claim of a capability names the test that proves it, or says "no test yet" or "not yet implemented" (Dermot, 10 October 2026). Two consequences worth knowing before editing: raise the `--cov-fail-under` ratchet only in the change that adds the tests that earn it, and keep `from __future__ import annotations` at the top of modules so new-style unions (`X | None`) stay valid on 3.9.
 
 ## Architecture
 
