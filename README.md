@@ -88,13 +88,18 @@ annotation = annotator.annotate("image.jpg", image_id="IMG_0001")
 print(annotation.to_json())
 ```
 
-Images may be given as a path, as raw `bytes`, or as an HTTPS URL. (No test
-yet: the backends are outside the suite, which never calls a model.)
+Images may be given as a path, as raw `bytes`, or as an HTTPS URL
+(`tests/test_backends.py::TestEncodeImage::test_str_path_is_read_and_encoded`,
+`::TestEncodeImage::test_bytes_are_base64`,
+`::TestEncodeImage::test_https_url_passes_through`; the MIME type a file or
+`bytes` is sent with comes from its magic bytes,
+`::TestDetectMime::test_known_magic_bytes`).
 
 ### Batches
 
 ```python
-annotations = annotator.annotate_batch(paths, mode=AnnotationMode.FAST_SCAN)
+images = [("IMG_0001", "a.jpg"), ("IMG_0002", "b.jpg")]   # (image_id, source) pairs
+annotations = annotator.annotate_batch(images, mode=AnnotationMode.FAST_SCAN)
 ```
 
 (`tests/test_annotator.py::TestAnnotatorBatch::test_batch_returns_list`,
@@ -109,6 +114,15 @@ the backend's raw labels are wanted.
 (`tests/test_annotator.py::TestAnnotatorCanonicalization::test_alias_canonicalised`,
 `::TestAnnotatorCanonicalization::test_canonicalize_false_preserves_aliases`,
 `::TestAnnotatorCanonicalization::test_alias_replies_share_l0_key`.)
+
+The label lists the prompt shows the model are the same ones the
+canonicaliser knows, list for list
+(`tests/test_prompts.py::TestPromptVocabulary::test_scene_labels_match`,
+`::TestPromptVocabulary::test_subject_labels_match`,
+`::TestPromptVocabulary::test_signal_labels_match`,
+`::TestPromptVocabulary::test_attribute_labels_match`,
+`::TestPromptVocabulary::test_relation_predicates_match`,
+`::TestPromptVocabulary::test_l2_section_predicates_match`).
 
 `HIDLAnnotation.l0_key()` gives `(scene, subjects, signals)` with the lists
 de-duplicated and sorted, so annotations can be grouped by their L0 summary
@@ -129,9 +143,14 @@ for ann in annotations:
 vision model can drive HIDL. `OpenAIVisionBackend` ships as the reference
 implementation; `openai` is an **optional** dependency and the core library has
 none. (The suite drives the annotator through its own `VisionBackend`, as in
-`tests/test_annotator.py::TestAnnotatorOutput::test_l0_fields`;
-`OpenAIVisionBackend` has no test yet; `.github/scripts/check_docs.py` fails
-if `pyproject.toml` gains a runtime dependency or loses the `openai` extra.)
+`tests/test_annotator.py::TestAnnotatorOutput::test_l0_fields`.
+`OpenAIVisionBackend` is tested against a stub `openai` module that records
+the request it would have sent, never a live model:
+`tests/test_backends.py::TestOpenAIVisionBackendCall::test_url_image_is_sent_as_url`,
+`::TestOpenAIVisionBackendCall::test_bytes_image_is_sent_as_data_uri_with_mime`,
+`::TestOpenAIVisionBackendConstruction::test_missing_package_raises_import_error`.
+`.github/scripts/check_docs.py` fails if `pyproject.toml` gains a runtime
+dependency or loses the `openai` extra.)
 
 Every capability row or claim above names the test that proves it (file and
 test name), or says it has no test yet (the README-proof convention, 10 October

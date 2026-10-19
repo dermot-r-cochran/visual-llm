@@ -4,6 +4,13 @@ from __future__ import annotations
 
 from hidl.modes import AnnotationMode
 from hidl.prompts import build_system_prompt, build_user_message
+from hidl.vocabulary import (
+    ATTRIBUTE_LABELS,
+    RELATION_PREDICATES,
+    SCENE_LABELS,
+    SIGNAL_LABELS,
+    SUBJECT_LABELS,
+)
 
 
 class TestBuildSystemPrompt:
@@ -73,3 +80,44 @@ class TestBuildUserMessage:
         for mode in AnnotationMode:
             msg = build_user_message("TEST_IMG", mode)
             assert "TEST_IMG" in msg
+
+
+class TestPromptVocabulary:
+    """The label lists the prompt shows the model are the ones the canonicaliser knows.
+
+    The vocabulary lives in two places (hidl/vocabulary.py and the prompt
+    template in hidl/prompts.py); CLAUDE.md asks that a change edit both.
+    This pins it, so a label added to one and not the other is a red test.
+    """
+
+    @staticmethod
+    def _listed(prompt: str, prefix: str) -> set[str]:
+        lines = [ln for ln in prompt.splitlines() if ln.startswith(prefix)]
+        assert len(lines) == 1, f"expected one line starting {prefix!r}, found {len(lines)}"
+        return {token.strip() for token in lines[0][len(prefix):].split(",")}
+
+    def test_scene_labels_match(self):
+        prompt = build_system_prompt(AnnotationMode.FAST_SCAN)
+        assert self._listed(prompt, "- Scene:") == set(SCENE_LABELS)
+
+    def test_subject_labels_match(self):
+        prompt = build_system_prompt(AnnotationMode.FAST_SCAN)
+        assert self._listed(prompt, "- Subjects (singular):") == set(SUBJECT_LABELS)
+
+    def test_signal_labels_match(self):
+        prompt = build_system_prompt(AnnotationMode.FAST_SCAN)
+        assert self._listed(prompt, "- Signals / quality_flags:") == set(SIGNAL_LABELS)
+
+    def test_attribute_labels_match(self):
+        prompt = build_system_prompt(AnnotationMode.FAST_SCAN)
+        assert self._listed(prompt, "- Attributes:") == set(ATTRIBUTE_LABELS)
+
+    def test_relation_predicates_match(self):
+        prompt = build_system_prompt(AnnotationMode.FAST_SCAN)
+        assert self._listed(prompt, "- Relation predicates:") == set(RELATION_PREDICATES)
+
+    def test_l2_section_predicates_match(self):
+        # The L2 schema section repeats the predicate list; it must agree too.
+        prompt = build_system_prompt(AnnotationMode.DETAILED)
+        listed = self._listed(prompt, "      predicate must be from:")
+        assert listed == set(RELATION_PREDICATES)

@@ -91,6 +91,12 @@ class TestExtractJson:
         s = _to_str(nested)
         assert json.loads(extract_json(s)) == nested
 
+    def test_fence_with_invalid_json_falls_through_to_brace_scan(self):
+        # A fenced block that is not JSON is skipped, and the object after it
+        # is still found by the first-'{' / last-'}' scan.
+        s = "```\nnot json at all\n```\n" + _to_str(FAST_SCAN_JSON)
+        assert json.loads(extract_json(s)) == FAST_SCAN_JSON
+
 
 # ---------------------------------------------------------------------------
 # parse_hidl_response

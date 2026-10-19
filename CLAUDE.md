@@ -13,7 +13,7 @@ pip install -e ".[dev]"        # dev install (pytest, pytest-cov); add [openai] 
 pytest                          # run all tests (config in pyproject.toml: testpaths=tests, -v)
 pytest tests/test_parser.py     # one file
 pytest -k test_name             # one test
-pytest --cov=hidl --cov-fail-under=86   # what CI runs — coverage is a ratchet at the measured baseline
+pytest --cov=hidl --cov-fail-under=100  # what CI runs — coverage is a ratchet at the measured baseline
 ruff check .                    # lint (CI job; config in pyproject.toml: line-length 99, target py39)
 ```
 
@@ -35,7 +35,7 @@ The **vocabulary** (`hidl/vocabulary.py`) is frozensets of canonical labels plus
 
 ## Things to keep aligned
 
-- The vocabulary lives in **two places**: the frozensets/aliases in `hidl/vocabulary.py` and the label lists written into the prompt template in `hidl/prompts.py`. A vocabulary change edits both, plus the tests, in the same commit — the schema/vocabulary tests are the specification, not incidental assertions (see `TestingStrategy.md`).
+- The vocabulary lives in **two places**: the frozensets/aliases in `hidl/vocabulary.py` and the label lists written into the prompt template in `hidl/prompts.py`. A vocabulary change edits both, plus the tests, in the same commit — the schema/vocabulary tests are the specification, not incidental assertions (see `TestingStrategy.md`). `tests/test_prompts.py::TestPromptVocabulary` compares the prompt's five label lists with the frozensets, so editing one place and not the other is a red test.
 - Keep model calls out of the tests. The suite is pure — no network, no model, no runtime dependencies — which is why a red test always means the *language* changed, never that a vendor did. Testing mechanics, the per-file map of what each test file pins, and the rules for extending the suite are in `TestingStrategy.md`.
 - New parser behaviour lands with both the accepting case and the rejecting case.
 

@@ -9,8 +9,8 @@ not a service. A language is testable in a way a service never is: zero
 runtime dependencies, no network, no model calls, so every property of the
 notation (schema, vocabulary, parsing, annotation modes, prompt assembly) can
 be pinned exactly and run in a fraction of a second. The suite leans into
-that: 92 tests across six files, all pure, all verified passing locally on
-2026-08-24.
+that: 124 tests across seven files, all pure, all verified passing locally on
+2026-10-19.
 
 ## The suite (`tests/`, pytest)
 
@@ -21,7 +21,8 @@ that: 92 tests across six files, all pure, all verified passing locally on
 | `test_parser.py` | text → structure, including malformed input |
 | `test_annotator.py` | the annotation pipeline that produces documents |
 | `test_modes.py` | the annotation detail modes (fast-scan, detailed, refinement) and their invariants |
-| `test_prompts.py` | the prompt templates handed to a vision model |
+| `test_prompts.py` | the prompt templates handed to a vision model, and that their label lists match `hidl/vocabulary.py` |
+| `test_backends.py` | image encoding and MIME detection, and the request `OpenAIVisionBackend` builds, recorded by a stub `openai` module (no model, no network) |
 
 Run: `pytest` (config in `pyproject.toml`). The `openai` extra is optional
 and nothing in the tests requires it — model integration stays out of the
@@ -31,8 +32,9 @@ that a vendor did.
 ## The doc check (`.github/scripts/check_docs.py`)
 
 Added 2026-10-10 with the README-proof convention: every capability row and
-claim in the README names the test that proves it, or says "no test yet" (the
-image sources and `OpenAIVisionBackend`, which the suite never calls). The
+claim in the README names the test that proves it, or says "no test yet"
+(none left as of 2026-10-19: the image sources and `OpenAIVisionBackend`'s
+request shape are pinned through a stub client in `test_backends.py`). The
 script is standard library only and runs as its own `docs` job in CI. It
 fails on a README citation (`tests/<file>.py::<name>`) whose file or name does
 not exist, a relative link in the README or under `docs/` that resolves to
@@ -66,4 +68,8 @@ reviewer's question.
 - Round-trip properties (parse → `to_json()` → parse is a fixed point) are a
   natural `hypothesis` target for the parser and `HIDLAnnotation.to_json()`
   (there is no separate renderer) and would generalise the fixed-case tests.
-- ~~Coverage is not measured~~ — the CI ratchet above holds it at ≥86%.
+- ~~Coverage is not measured~~ — the CI ratchet above holds it at ≥86%;
+  raised to 100% on 2026-10-19 when `test_backends.py` covered the last
+  untested module. (Until then the measured figure was 85.82%, which
+  pytest-cov rounds to 86 and passes while printing FAIL; the ratchet had
+  slipped by a hair without anyone seeing it.)
