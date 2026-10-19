@@ -45,9 +45,12 @@ jobs:
 
       - name: Run tests
         # --cov-fail-under is a ratchet at the measured baseline (86% on
-        # 2026-08-24): raise it in the change that adds the tests that earn
-        # it; it can never quietly fall.
-        run: pytest --cov=hidl --cov-fail-under=86
+        # 2026-08-24; 100% on 2026-10-19, once the backend's encoding and
+        # request wiring were tested against a stub client): raise it in the
+        # change that adds the tests that earn it; it can never quietly fall.
+        # Note pytest-cov rounds before comparing, so 85.82% passed at 86
+        # while printing FAIL; at 100 there is no rounding room.
+        run: pytest --cov=hidl --cov-fail-under=100
 
   lint:
     name: ruff
