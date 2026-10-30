@@ -2,8 +2,8 @@ name: CI
 
 # Runs the suite on every pull request and push to main. The suite is pure
 # Python with zero runtime dependencies and no model calls (see
-# TestingStrategy.md), so this workflow is as small as CI gets - and the 92
-# tests it enforces were previously voluntary.
+# TestingStrategy.md), so this workflow is as small as CI gets - and the
+# tests it enforces (counted in TestingStrategy.md) were previously voluntary.
 
 on:
   pull_request:

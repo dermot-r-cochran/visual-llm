@@ -105,6 +105,24 @@ annotations = annotator.annotate_batch(images, mode=AnnotationMode.FAST_SCAN)
 (`tests/test_annotator.py::TestAnnotatorBatch::test_batch_returns_list`,
 `::TestAnnotatorBatch::test_batch_preserves_order`.)
 
+### What the parser rejects
+
+A reply is parsed from the JSON in the model's text, with or without markdown
+fences or surrounding prose
+(`tests/test_parser.py::TestExtractJson::test_json_with_markdown_fence`,
+`::TestExtractJson::test_json_surrounded_by_prose`). A reply whose fields
+have the wrong shape for the schema is refused with a `ValueError` that names
+the field, never accepted as a mangled annotation: a string where a list
+belongs is not split into letters, a list or `null` where a label belongs is
+not carried into canonicalisation, a level that is not an object is not read
+(`tests/test_schema.py::TestHIDLAnnotationTypes::test_string_where_list_belongs_is_not_split_into_letters`,
+`::TestHIDLAnnotationTypes::test_list_where_label_belongs_is_rejected`,
+`::TestHIDLAnnotationTypes::test_level_must_be_an_object`;
+end to end, `tests/test_annotator.py::TestAnnotatorOutput::test_mistyped_reply_raises_value_error_before_canonicalisation`).
+Every well-formed annotation passes, and parsing its own `to_json()` gives it
+back unchanged
+(`tests/test_schema.py::TestHIDLAnnotationTypes::test_well_typed_annotation_round_trips_to_itself`).
+
 ### Canonicalisation
 
 `HIDLAnnotator(backend, canonicalize=True)` is the default. It normalises L0 and

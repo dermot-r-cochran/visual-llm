@@ -11,6 +11,49 @@ from dataclasses import asdict, dataclass, field
 from typing import Any
 
 # ---------------------------------------------------------------------------
+# Type checks for data parsed from a model reply
+# ---------------------------------------------------------------------------
+#
+# A vision model asked for JSON will sometimes return a string where the
+# schema wants a list ("subjects": "person"), or a list or null where it wants
+# a label.  Python's list() would split that string into letters, and a list
+# label would survive until canonicalisation and fail there with an
+# AttributeError.  Neither is a HIDL annotation, so each field is checked
+# against the type its dataclass declares and the failure names the path.
+
+
+def _wrong_type(where: str, expected: str, value: Any) -> ValueError:
+    # ValueError rather than TypeError: ``from_dict`` documents ValueError for
+    # a field of the wrong type, and ``parse_hidl_response`` re-raises it with
+    # the parsed data attached, so a caller has one exception to catch.
+    return ValueError(f"{where} must be {expected}, got {type(value).__name__}")
+
+
+def _object(value: Any, where: str) -> dict[str, Any]:
+    if not isinstance(value, dict):
+        raise _wrong_type(where, "an object", value)
+    return value
+
+
+def _string(value: Any, where: str) -> str:
+    if not isinstance(value, str):
+        raise _wrong_type(where, "a string", value)
+    return value
+
+
+def _string_list(value: Any, where: str) -> list[str]:
+    if not isinstance(value, list):
+        raise _wrong_type(where, "a list", value)
+    return [_string(item, f"{where}[{i}]") for i, item in enumerate(value)]
+
+
+def _object_list(value: Any, where: str) -> list[dict[str, Any]]:
+    if not isinstance(value, list):
+        raise _wrong_type(where, "a list", value)
+    return [_object(item, f"{where}[{i}]") for i, item in enumerate(value)]
+
+
+# ---------------------------------------------------------------------------
 # Level 0 – one-line abstraction
 # ---------------------------------------------------------------------------
 
@@ -244,58 +287,70 @@ class HIDLAnnotation:
 
         Raises:
             KeyError: If required fields ``id``, ``l0``, or ``l1`` are missing.
-            ValueError: If data types are inconsistent.
+            ValueError: If a field has the wrong type for the schema: a string
+                where a list belongs, a list or ``None`` where a label belongs,
+                a non-object level or entry.  The message names the field
+                (``"l0.subjects must be a list, got str"``).  A ``count`` that
+                ``int()`` cannot read also raises ``ValueError``.
         """
-        image_id: str = data["id"]
+        _object(data, "annotation")
+        image_id = _string(data["id"], "id")
 
-        l0_data = data["l0"]
+        l0_data = _object(data["l0"], "l0")
         l0 = L0(
-            scene=l0_data["scene"],
-            subjects=list(l0_data.get("subjects", [])),
-            signals=list(l0_data.get("signals", [])),
+            scene=_string(l0_data["scene"], "l0.scene"),
+            subjects=_string_list(l0_data.get("subjects", []), "l0.subjects"),
+            signals=_string_list(l0_data.get("signals", []), "l0.signals"),
         )
 
-        l1_data = data["l1"]
+        l1_data = _object(data["l1"], "l1")
         l1_subjects = [
-            L1Subject(label=s["label"], count=int(s.get("count", 1)))
-            for s in l1_data.get("subjects", [])
+            L1Subject(
+                label=_string(s["label"], f"l1.subjects[{i}].label"),
+                count=int(s.get("count", 1)),
+            )
+            for i, s in enumerate(_object_list(l1_data.get("subjects", []), "l1.subjects"))
         ]
         l1 = L1(
-            scene=l1_data["scene"],
+            scene=_string(l1_data["scene"], "l1.scene"),
             subjects=l1_subjects,
-            attributes=list(l1_data.get("attributes", [])),
-            signals=list(l1_data.get("signals", [])),
-            quality_flags=list(l1_data.get("quality_flags", [])),
+            attributes=_string_list(l1_data.get("attributes", []), "l1.attributes"),
+            signals=_string_list(l1_data.get("signals", []), "l1.signals"),
+            quality_flags=_string_list(l1_data.get("quality_flags", []), "l1.quality_flags"),
         )
 
         l2: L2 | None = None
         if "l2" in data and data["l2"] is not None:
-            l2_data = data["l2"]
+            l2_data = _object(data["l2"], "l2")
             l2_objects = [
                 L2Object(
-                    id=o["id"],
-                    label=o["label"],
-                    attributes=list(o.get("attributes", [])),
+                    id=_string(o["id"], f"l2.objects[{i}].id"),
+                    label=_string(o["label"], f"l2.objects[{i}].label"),
+                    attributes=_string_list(
+                        o.get("attributes", []), f"l2.objects[{i}].attributes"
+                    ),
                 )
-                for o in l2_data.get("objects", [])
+                for i, o in enumerate(_object_list(l2_data.get("objects", []), "l2.objects"))
             ]
             l2_relations = [
                 L2Relation(
-                    subject=r["subject"],
-                    predicate=r["predicate"],
-                    object=r["object"],
+                    subject=_string(r["subject"], f"l2.relations[{i}].subject"),
+                    predicate=_string(r["predicate"], f"l2.relations[{i}].predicate"),
+                    object=_string(r["object"], f"l2.relations[{i}].object"),
                 )
-                for r in l2_data.get("relations", [])
+                for i, r in enumerate(
+                    _object_list(l2_data.get("relations", []), "l2.relations")
+                )
             ]
             l2 = L2(objects=l2_objects, relations=l2_relations)
 
         l3: L3 | None = None
         if "l3" in data and data["l3"] is not None:
-            l3_data = data["l3"]
+            l3_data = _object(data["l3"], "l3")
             l3 = L3(
-                ambiguity=list(l3_data.get("ambiguity", [])),
-                composition=list(l3_data.get("composition", [])),
-                uniqueness=list(l3_data.get("uniqueness", [])),
+                ambiguity=_string_list(l3_data.get("ambiguity", []), "l3.ambiguity"),
+                composition=_string_list(l3_data.get("composition", []), "l3.composition"),
+                uniqueness=_string_list(l3_data.get("uniqueness", []), "l3.uniqueness"),
             )
 
         return cls(id=image_id, l0=l0, l1=l1, l2=l2, l3=l3)

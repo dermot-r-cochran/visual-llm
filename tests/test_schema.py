@@ -270,3 +270,106 @@ class TestHIDLAnnotationDeserialisation:
         d["l1"]["subjects"][0].pop("count")
         ann = HIDLAnnotation.from_dict(d)
         assert ann.l1.subjects[0].count == 1
+
+
+# ---------------------------------------------------------------------------
+# HIDLAnnotation.from_dict type checks
+# ---------------------------------------------------------------------------
+
+
+class TestHIDLAnnotationTypes:
+    """A field of the wrong type is rejected with a ValueError naming it.
+
+    The rejecting cases are what a vision model actually returns when it
+    strays from the schema; the accepting case is the fixed point that shows
+    the checks admit every well-formed annotation.
+    """
+
+    def test_well_typed_annotation_round_trips_to_itself(self):
+        ann = make_refinement_annotation()
+        reconstructed = HIDLAnnotation.from_dict(json.loads(ann.to_json()))
+        assert reconstructed == ann
+        assert HIDLAnnotation.from_dict(json.loads(reconstructed.to_json())) == ann
+
+    def test_string_where_list_belongs_is_not_split_into_letters(self):
+        d = make_fast_scan_annotation().to_dict()
+        d["l0"]["subjects"] = "person"
+        with pytest.raises(ValueError, match=r"l0\.subjects must be a list, got str"):
+            HIDLAnnotation.from_dict(d)
+
+    def test_list_where_label_belongs_is_rejected(self):
+        d = make_fast_scan_annotation().to_dict()
+        d["l0"]["scene"] = ["urban-street"]
+        with pytest.raises(ValueError, match=r"l0\.scene must be a string, got list"):
+            HIDLAnnotation.from_dict(d)
+
+    def test_null_where_label_belongs_is_rejected(self):
+        d = make_fast_scan_annotation().to_dict()
+        d["l1"]["scene"] = None
+        with pytest.raises(ValueError, match=r"l1\.scene must be a string, got NoneType"):
+            HIDLAnnotation.from_dict(d)
+
+    def test_non_string_list_item_is_named_by_index(self):
+        d = make_fast_scan_annotation().to_dict()
+        d["l1"]["attributes"] = ["night", 3]
+        with pytest.raises(ValueError, match=r"l1\.attributes\[1\] must be a string, got int"):
+            HIDLAnnotation.from_dict(d)
+
+    def test_subject_entry_must_be_an_object(self):
+        d = make_fast_scan_annotation().to_dict()
+        d["l1"]["subjects"] = ["person"]
+        with pytest.raises(ValueError, match=r"l1\.subjects\[0\] must be an object, got str"):
+            HIDLAnnotation.from_dict(d)
+
+    def test_subjects_must_be_a_list_not_a_single_entry(self):
+        d = make_fast_scan_annotation().to_dict()
+        d["l1"]["subjects"] = {"label": "person", "count": 1}
+        with pytest.raises(ValueError, match=r"l1\.subjects must be a list, got dict"):
+            HIDLAnnotation.from_dict(d)
+
+    def test_subject_label_must_be_a_string(self):
+        d = make_fast_scan_annotation().to_dict()
+        d["l1"]["subjects"][0]["label"] = ["person"]
+        with pytest.raises(ValueError, match=r"l1\.subjects\[0\]\.label must be a string"):
+            HIDLAnnotation.from_dict(d)
+
+    def test_level_must_be_an_object(self):
+        d = make_fast_scan_annotation().to_dict()
+        d["l2"] = "none"
+        with pytest.raises(ValueError, match=r"l2 must be an object, got str"):
+            HIDLAnnotation.from_dict(d)
+
+    def test_l2_object_attributes_must_be_a_list(self):
+        d = make_detailed_annotation().to_dict()
+        d["l2"]["objects"][0]["attributes"] = "standing"
+        with pytest.raises(ValueError, match=r"l2\.objects\[0\]\.attributes must be a list"):
+            HIDLAnnotation.from_dict(d)
+
+    def test_l2_relation_fields_must_be_strings(self):
+        d = make_detailed_annotation().to_dict()
+        d["l2"]["relations"][0]["object"] = 1
+        with pytest.raises(ValueError, match=r"l2\.relations\[0\]\.object must be a string"):
+            HIDLAnnotation.from_dict(d)
+
+    def test_l3_lists_must_be_lists(self):
+        d = make_refinement_annotation().to_dict()
+        d["l3"]["ambiguity"] = "maybe-truck"
+        with pytest.raises(ValueError, match=r"l3\.ambiguity must be a list, got str"):
+            HIDLAnnotation.from_dict(d)
+
+    def test_id_must_be_a_string(self):
+        d = make_fast_scan_annotation().to_dict()
+        d["id"] = 7
+        with pytest.raises(ValueError, match=r"^id must be a string, got int"):
+            HIDLAnnotation.from_dict(d)
+
+    def test_annotation_must_be_an_object(self):
+        with pytest.raises(ValueError, match=r"annotation must be an object, got list"):
+            HIDLAnnotation.from_dict([make_fast_scan_annotation().to_dict()])
+
+    def test_missing_required_key_still_raises_key_error(self):
+        # Type checks do not change what a missing required field raises.
+        d = make_fast_scan_annotation().to_dict()
+        del d["l1"]["scene"]
+        with pytest.raises(KeyError):
+            HIDLAnnotation.from_dict(d)

@@ -163,6 +163,23 @@ class TestAnnotatorOutput:
         # Parser uses LLM id when present; image_id is only a fallback
         assert ann.id == "WRONG"
 
+    def test_mistyped_reply_raises_value_error_before_canonicalisation(self):
+        # A list where a label belongs used to pass the parser and fail inside
+        # canonicalisation with an AttributeError; it is a ValueError now, and
+        # the message names the field.
+        resp = json.loads(json.dumps(FAST_SCAN_RESPONSE))
+        resp["l0"]["scene"] = ["urban-street"]
+        annotator = HIDLAnnotator(MockVisionBackend(resp))
+        with pytest.raises(ValueError, match=r"l0\.scene must be a string, got list"):
+            annotator.annotate(b"fake", image_id="IMG_0001")
+
+    def test_string_subjects_are_not_annotated_as_letters(self):
+        resp = json.loads(json.dumps(FAST_SCAN_RESPONSE))
+        resp["l0"]["subjects"] = "person"
+        annotator = HIDLAnnotator(MockVisionBackend(resp))
+        with pytest.raises(ValueError, match=r"l0\.subjects must be a list, got str"):
+            annotator.annotate(b"fake", image_id="IMG_0001")
+
 
 # ---------------------------------------------------------------------------
 # Canonicalisation
