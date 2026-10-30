@@ -5,7 +5,7 @@ consistent, compact, hierarchical (L0–L3) JSON annotations suitable for
 large-scale scanning and clustering.
 """
 
-from hidl.annotator import HIDLAnnotator
+from hidl.annotator import BatchFailure, BatchResult, HIDLAnnotator
 from hidl.modes import AnnotationMode
 from hidl.schema import (
     L0,
@@ -24,6 +24,8 @@ __all__ = [
     "L2",
     "L3",
     "AnnotationMode",
+    "BatchFailure",
+    "BatchResult",
     "HIDLAnnotation",
     "HIDLAnnotator",
     "L1Subject",

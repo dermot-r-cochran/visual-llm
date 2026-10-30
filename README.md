@@ -99,11 +99,25 @@ Images may be given as a path, as raw `bytes`, or as an HTTPS URL
 
 ```python
 images = [("IMG_0001", "a.jpg"), ("IMG_0002", "b.jpg")]   # (image_id, source) pairs
-annotations = annotator.annotate_batch(images, mode=AnnotationMode.FAST_SCAN)
+batch = annotator.annotate_batch(images, mode=AnnotationMode.FAST_SCAN)
+for failure in batch.failures:                            # index, image_id, error
+    print(failure.index, failure.image_id, failure.error)
+annotations = batch.results
 ```
 
+`annotate_batch` returns a `BatchResult`: `results` holds the annotations
+that parsed, in input order
 (`tests/test_annotator.py::TestAnnotatorBatch::test_batch_returns_list`,
-`::TestAnnotatorBatch::test_batch_preserves_order`.)
+`::TestAnnotatorBatch::test_batch_preserves_order`), and `failures` holds one
+`BatchFailure` (the image's index in the input, its `image_id`, and the
+parser's message) for each reply that was refused. One bad reply does not
+cost the rest of the batch
+(`::TestAnnotatorBatch::test_bad_reply_in_the_middle_keeps_the_others`,
+`::TestAnnotatorBatch::test_all_bad_replies_are_all_recorded`). Only the
+parser's `ValueError` is caught: an unknown mode raises before any image is
+sent, and a backend error still propagates
+(`::TestAnnotatorBatch::test_unknown_mode_raises_before_any_call`,
+`::TestAnnotatorBatch::test_backend_error_is_not_swallowed`).
 
 ### What the parser rejects
 

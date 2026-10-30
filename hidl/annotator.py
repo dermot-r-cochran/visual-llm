@@ -7,6 +7,8 @@ objects from images.
 
 from __future__ import annotations
 
+from dataclasses import dataclass, field
+
 from hidl.backends import ImageSource, VisionBackend
 from hidl.modes import AnnotationMode, infer_mode
 from hidl.parser import parse_hidl_response
@@ -18,6 +20,37 @@ from hidl.vocabulary import (
     canonicalize_signal,
     canonicalize_subject,
 )
+
+
+@dataclass
+class BatchFailure:
+    """One image of a batch whose reply could not be turned into an annotation.
+
+    Attributes:
+        index: Position of the image in the list given to
+            :meth:`HIDLAnnotator.annotate_batch`.
+        image_id: The caller's identifier for that image.
+        error: The message of the ``ValueError`` the parser raised, which
+            names the offending field or quotes the offending text.
+    """
+
+    index: int
+    image_id: str
+    error: str
+
+
+@dataclass
+class BatchResult:
+    """What :meth:`HIDLAnnotator.annotate_batch` returns.
+
+    Attributes:
+        results: The annotations that parsed, in the order of the input.
+        failures: One :class:`BatchFailure` per image whose reply was
+            refused, in the order of the input.
+    """
+
+    results: list[HIDLAnnotation] = field(default_factory=list)
+    failures: list[BatchFailure] = field(default_factory=list)
 
 
 class HIDLAnnotator:
@@ -104,8 +137,15 @@ class HIDLAnnotator:
         *,
         mode: AnnotationMode | str | None = None,
         instruction: str | None = None,
-    ) -> list[HIDLAnnotation]:
+    ) -> BatchResult:
         """Annotate a batch of images sequentially.
+
+        One bad reply does not cost the rest of the batch: an image whose
+        reply the parser refuses (a ``ValueError``) is recorded as a
+        :class:`BatchFailure` and the batch carries on. Any other exception,
+        such as a backend that cannot be reached, still propagates, since it
+        would fail every image alike. An unknown *mode* raises before any
+        image is sent.
 
         Args:
             images: A list of ``(image_id, image_source)`` pairs.
@@ -113,13 +153,18 @@ class HIDLAnnotator:
             instruction: Free-text instruction for mode inference.
 
         Returns:
-            A list of :class:`~hidl.schema.HIDLAnnotation` objects in the same
-            order as *images*.
+            A :class:`BatchResult` whose ``results`` holds the annotations
+            that parsed and whose ``failures`` holds one entry per refused
+            reply, each in the order of *images*.
         """
-        return [
-            self.annotate(src, image_id=img_id, mode=mode, instruction=instruction)
-            for img_id, src in images
-        ]
+        resolved_mode = self._resolve_mode(mode, instruction)
+        batch = BatchResult()
+        for index, (img_id, src) in enumerate(images):
+            try:
+                batch.results.append(self.annotate(src, image_id=img_id, mode=resolved_mode))
+            except ValueError as exc:
+                batch.failures.append(BatchFailure(index=index, image_id=img_id, error=str(exc)))
+        return batch
 
     # ------------------------------------------------------------------
     # Internal helpers
