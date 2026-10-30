@@ -7,7 +7,7 @@ from typing import Any
 
 import pytest
 
-from hidl.annotator import HIDLAnnotator
+from hidl.annotator import BatchFailure, BatchResult, HIDLAnnotator
 from hidl.backends import ImageSource, VisionBackend
 from hidl.modes import AnnotationMode
 from hidl.schema import (
@@ -248,12 +248,36 @@ class TestAnnotatorCanonicalization:
 # ---------------------------------------------------------------------------
 
 
+class SequenceBackend(VisionBackend):
+    """A mock backend that returns its preset raw replies one call at a time."""
+
+    def __init__(self, replies: list[str]) -> None:
+        self._replies = iter(replies)
+
+    def call(
+        self,
+        system_prompt: str,
+        user_message: str,
+        image: ImageSource,
+    ) -> str:
+        return next(self._replies)
+
+
+# A reply that parses but is mistyped: a string where the subject list belongs.
+MISTYPED_REPLY = json.dumps(
+    {**FAST_SCAN_RESPONSE, "l0": {**FAST_SCAN_RESPONSE["l0"], "subjects": "car"}}
+)
+GOOD_REPLY = json.dumps({k: v for k, v in FAST_SCAN_RESPONSE.items() if k != "id"})
+
+
 class TestAnnotatorBatch:
     def test_batch_returns_list(self):
         annotator = HIDLAnnotator(MockVisionBackend(FAST_SCAN_RESPONSE))
         images = [("A", b"fake"), ("B", b"fake"), ("C", b"fake")]
-        results = annotator.annotate_batch(images)
-        assert len(results) == 3
+        batch = annotator.annotate_batch(images)
+        assert isinstance(batch, BatchResult)
+        assert len(batch.results) == 3
+        assert batch.failures == []
 
     def test_batch_preserves_order(self):
         # A reply without an id takes the caller's image_id, so each result
@@ -261,6 +285,37 @@ class TestAnnotatorBatch:
         no_id = {k: v for k, v in FAST_SCAN_RESPONSE.items() if k != "id"}
         annotator = HIDLAnnotator(MockVisionBackend(no_id))
         images = [(f"IMG_{i:04d}", b"fake") for i in (3, 0, 4, 1, 2)]
-        results = annotator.annotate_batch(images)
-        assert all(isinstance(r, HIDLAnnotation) for r in results)
-        assert [r.id for r in results] == [img_id for img_id, _ in images]
+        batch = annotator.annotate_batch(images)
+        assert all(isinstance(r, HIDLAnnotation) for r in batch.results)
+        assert [r.id for r in batch.results] == [img_id for img_id, _ in images]
+
+    def test_bad_reply_in_the_middle_keeps_the_others(self):
+        annotator = HIDLAnnotator(SequenceBackend([GOOD_REPLY, MISTYPED_REPLY, GOOD_REPLY]))
+        images = [("A", b"fake"), ("B", b"fake"), ("C", b"fake")]
+        batch = annotator.annotate_batch(images)
+        assert [r.id for r in batch.results] == ["A", "C"]
+        assert len(batch.failures) == 1
+        failure = batch.failures[0]
+        assert isinstance(failure, BatchFailure)
+        assert (failure.index, failure.image_id) == (1, "B")
+        assert "subjects" in failure.error
+
+    def test_all_bad_replies_are_all_recorded(self):
+        annotator = HIDLAnnotator(SequenceBackend([MISTYPED_REPLY, "no json here"]))
+        batch = annotator.annotate_batch([("A", b"fake"), ("B", b"fake")])
+        assert batch.results == []
+        assert [(f.index, f.image_id) for f in batch.failures] == [(0, "A"), (1, "B")]
+        assert all(f.error for f in batch.failures)
+
+    def test_unknown_mode_raises_before_any_call(self):
+        annotator = HIDLAnnotator(SequenceBackend([]))
+        with pytest.raises(ValueError):
+            annotator.annotate_batch([("A", b"fake")], mode="no-such-mode")
+
+    def test_backend_error_is_not_swallowed(self):
+        class Broken(VisionBackend):
+            def call(self, system_prompt, user_message, image):
+                raise ConnectionError("unreachable")
+
+        with pytest.raises(ConnectionError):
+            HIDLAnnotator(Broken()).annotate_batch([("A", b"fake")])

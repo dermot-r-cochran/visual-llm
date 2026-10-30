@@ -9,7 +9,7 @@ not a service. A language is testable in a way a service never is: zero
 runtime dependencies, no network, no model calls, so every property of the
 notation (schema, vocabulary, parsing, annotation modes, prompt assembly) can
 be pinned exactly and run in a fraction of a second. The suite leans into
-that: 143 tests across seven files, all pure, all verified passing locally on
+that: 147 tests across seven files, all pure, all verified passing locally on
 2026-10-30.
 
 ## The suite (`tests/`, pytest)
@@ -19,7 +19,7 @@ that: 143 tests across seven files, all pure, all verified passing locally on
 | `test_schema.py` | the structural contract of a HIDL document, and that `from_dict` refuses a field of the wrong type by name rather than reading it as something else |
 | `test_vocabulary.py` | the controlled vocabulary — the terms the language admits |
 | `test_parser.py` | text → structure, including malformed input |
-| `test_annotator.py` | the annotation pipeline that produces documents |
+| `test_annotator.py` | the annotation pipeline that produces documents, and a batch that keeps its good results when one reply is refused |
 | `test_modes.py` | the annotation detail modes (fast-scan, detailed, refinement) and their invariants |
 | `test_prompts.py` | the prompt templates handed to a vision model, and that their label lists match `hidl/vocabulary.py` |
 | `test_backends.py` | image encoding and MIME detection, and the request `OpenAIVisionBackend` builds, recorded by a stub `openai` module (no model, no network) |
