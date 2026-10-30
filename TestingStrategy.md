@@ -9,14 +9,14 @@ not a service. A language is testable in a way a service never is: zero
 runtime dependencies, no network, no model calls, so every property of the
 notation (schema, vocabulary, parsing, annotation modes, prompt assembly) can
 be pinned exactly and run in a fraction of a second. The suite leans into
-that: 124 tests across seven files, all pure, all verified passing locally on
-2026-10-19.
+that: 143 tests across seven files, all pure, all verified passing locally on
+2026-10-30.
 
 ## The suite (`tests/`, pytest)
 
 | File | Pins |
 | --- | --- |
-| `test_schema.py` | the structural contract of a HIDL document |
+| `test_schema.py` | the structural contract of a HIDL document, and that `from_dict` refuses a field of the wrong type by name rather than reading it as something else |
 | `test_vocabulary.py` | the controlled vocabulary — the terms the language admits |
 | `test_parser.py` | text → structure, including malformed input |
 | `test_annotator.py` | the annotation pipeline that produces documents |
@@ -68,6 +68,10 @@ reviewer's question.
 - Round-trip properties (parse → `to_json()` → parse is a fixed point) are a
   natural `hypothesis` target for the parser and `HIDLAnnotation.to_json()`
   (there is no separate renderer) and would generalise the fixed-case tests.
+  The fixed case itself is pinned since 2026-10-30
+  (`test_schema.py::TestHIDLAnnotationTypes::test_well_typed_annotation_round_trips_to_itself`);
+  what remains open is the generated-input form, which would add
+  `hypothesis` to the `dev` extra.
 - ~~Coverage is not measured~~ — the CI ratchet above holds it at ≥86%;
   raised to 100% on 2026-10-19 when `test_backends.py` covered the last
   untested module. (Until then the measured figure was 85.82%, which

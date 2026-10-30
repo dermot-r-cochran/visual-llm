@@ -144,3 +144,15 @@ class TestParseHidlResponse:
     def test_non_json_raises(self):
         with pytest.raises(ValueError):
             parse_hidl_response("I cannot annotate this image.")
+
+    def test_string_where_list_belongs_raises_naming_the_field(self):
+        d = json.loads(_to_str(FAST_SCAN_JSON))
+        d["l0"]["subjects"] = "person"
+        with pytest.raises(ValueError, match=r"invalid HIDL structure: l0\.subjects must be a list"):
+            parse_hidl_response(json.dumps(d))
+
+    def test_non_object_level_raises_value_error_not_attribute_error(self):
+        d = json.loads(_to_str(FAST_SCAN_JSON))
+        d["l2"] = "none"
+        with pytest.raises(ValueError, match=r"l2 must be an object, got str"):
+            parse_hidl_response(json.dumps(d))
