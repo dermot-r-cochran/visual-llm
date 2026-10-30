@@ -208,6 +208,11 @@ Research prototype. The schema, vocabulary and mode inference are settled and
 covered by tests; the backend roster is deliberately thin. Interfaces may still
 change.
 
+## Related
+
+- [dermot-cochran-photography](https://github.com/dermot-r-cochran/dermot-cochran-photography) is the author's own photo set; HIDL reads no frame from it and it carries no annotation from HIDL.
+- How this and the author's other public repositories relate is kept in one map: [RELATED-REPOSITORIES.md](https://github.com/dermot-r-cochran/star-rangers/blob/main/RELATED-REPOSITORIES.md).
+
 ## Licence
 
 MIT — see [LICENSE](LICENSE).
