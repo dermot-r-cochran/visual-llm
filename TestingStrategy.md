@@ -9,8 +9,8 @@ not a service. A language is testable in a way a service never is: zero
 runtime dependencies, no network, no model calls, so every property of the
 notation (schema, vocabulary, parsing, annotation modes, prompt assembly) can
 be pinned exactly and run in a fraction of a second. The suite leans into
-that: 147 tests across seven files, all pure, all verified passing locally on
-2026-10-30.
+that: 157 tests across seven files, all pure, all verified passing locally on
+2026-11-10.
 
 ## The suite (`tests/`, pytest)
 

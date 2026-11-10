@@ -300,6 +300,17 @@ class TestAnnotatorBatch:
         assert (failure.index, failure.image_id) == (1, "B")
         assert "subjects" in failure.error
 
+    def test_fenced_non_object_reply_keeps_the_others(self):
+        # A fenced reply that is JSON but not an object (here a refusal in a
+        # JSON string) used to raise AttributeError, which the batch does not
+        # catch, so it cost every result already gathered.
+        refusal = '```json\n"I cannot annotate this image"\n```'
+        annotator = HIDLAnnotator(SequenceBackend([GOOD_REPLY, refusal, GOOD_REPLY]))
+        batch = annotator.annotate_batch([("A", b"fake"), ("B", b"fake"), ("C", b"fake")])
+        assert [r.id for r in batch.results] == ["A", "C"]
+        assert [(f.index, f.image_id) for f in batch.failures] == [(1, "B")]
+        assert "No JSON object found" in batch.failures[0].error
+
     def test_all_bad_replies_are_all_recorded(self):
         annotator = HIDLAnnotator(SequenceBackend([MISTYPED_REPLY, "no json here"]))
         batch = annotator.annotate_batch([("A", b"fake"), ("B", b"fake")])

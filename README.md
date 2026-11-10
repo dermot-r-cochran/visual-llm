@@ -124,7 +124,15 @@ sent, and a backend error still propagates
 A reply is parsed from the JSON in the model's text, with or without markdown
 fences or surrounding prose
 (`tests/test_parser.py::TestExtractJson::test_json_with_markdown_fence`,
-`::TestExtractJson::test_json_surrounded_by_prose`). A reply whose fields
+`::TestExtractJson::test_json_surrounded_by_prose`). A fenced block that is
+JSON but not an object (a string, a number, `null`, a list) is not taken for
+the annotation; the reply is refused with a `ValueError` unless an object can
+still be found in it
+(`::TestExtractJson::test_fenced_json_that_is_not_an_object_is_not_returned`,
+`::TestExtractJson::test_fenced_non_object_falls_through_to_brace_scan`,
+`::TestParseHidlResponse::test_fenced_non_object_raises_value_error_not_attribute_error`;
+in a batch, `tests/test_annotator.py::TestAnnotatorBatch::test_fenced_non_object_reply_keeps_the_others`).
+A reply whose fields
 have the wrong shape for the schema is refused with a `ValueError` that names
 the field, never accepted as a mangled annotation: a string where a list
 belongs is not split into letters, a list or `null` where a label belongs is

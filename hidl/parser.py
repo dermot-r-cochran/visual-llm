@@ -37,13 +37,18 @@ def extract_json(text: str) -> str:
     Raises:
         ValueError: If no JSON object can be located.
     """
-    # 1. Try to strip markdown fences first.
+    # 1. Try to strip markdown fences first.  A fenced block is taken only if
+    #    it is a JSON *object*: a fenced list, string, number or null is valid
+    #    JSON but not an annotation, so it falls through to the brace scan
+    #    like a fence that is not JSON at all.  (Returned as it was, it
+    #    reached ``parse_hidl_response`` as a non-dict and failed there with
+    #    an AttributeError, which no caller of the parser is told to catch.)
     fence_match = _CODE_FENCE_RE.search(text)
     if fence_match:
         candidate = fence_match.group(1).strip()
         try:
-            json.loads(candidate)
-            return candidate
+            if isinstance(json.loads(candidate), dict):
+                return candidate
         except json.JSONDecodeError:
             pass
 

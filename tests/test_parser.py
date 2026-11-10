@@ -97,6 +97,20 @@ class TestExtractJson:
         s = "```\nnot json at all\n```\n" + _to_str(FAST_SCAN_JSON)
         assert json.loads(extract_json(s)) == FAST_SCAN_JSON
 
+    @pytest.mark.parametrize(
+        "fenced", ['"I cannot annotate this image"', "42", "null", '["person", "car"]']
+    )
+    def test_fenced_json_that_is_not_an_object_is_not_returned(self, fenced):
+        # Valid JSON, but not an object: there is no annotation in the reply.
+        with pytest.raises(ValueError, match="No JSON object found"):
+            extract_json("```json\n" + fenced + "\n```")
+
+    def test_fenced_non_object_falls_through_to_brace_scan(self):
+        # The same fall-through as a fence that is not JSON: the object after
+        # the fenced block is still found.
+        s = "```\n42\n```\n" + _to_str(FAST_SCAN_JSON)
+        assert json.loads(extract_json(s)) == FAST_SCAN_JSON
+
 
 # ---------------------------------------------------------------------------
 # parse_hidl_response
@@ -156,3 +170,10 @@ class TestParseHidlResponse:
         d["l2"] = "none"
         with pytest.raises(ValueError, match=r"l2 must be an object, got str"):
             parse_hidl_response(json.dumps(d))
+
+    @pytest.mark.parametrize("fenced", ['"I cannot annotate this image"', "42", "null", "[]"])
+    def test_fenced_non_object_raises_value_error_not_attribute_error(self, fenced):
+        # A fenced reply that is JSON but not an object used to reach
+        # ``data.get`` as a str, int, None or list and raise AttributeError.
+        with pytest.raises(ValueError, match="No JSON object found"):
+            parse_hidl_response("```json\n" + fenced + "\n```", image_id="IMG_0001")
