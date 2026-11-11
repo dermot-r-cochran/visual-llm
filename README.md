@@ -119,6 +119,26 @@ sent, and a backend error still propagates
 (`::TestAnnotatorBatch::test_unknown_mode_raises_before_any_call`,
 `::TestAnnotatorBatch::test_backend_error_is_not_swallowed`).
 
+Each result carries the caller's `image_id`, never the `id` the model wrote,
+so a model that echoes the prompt's example id cannot give a whole batch one
+id (`::TestAnnotatorBatch::test_echoed_example_id_does_not_relabel_the_batch`;
+for one image, `::TestAnnotatorOutput::test_image_id_override`).
+
+To keep the results past the session, `write_jsonl` writes them one
+annotation per line and `load_jsonl` reads them back as the same objects
+(`tests/test_jsonl.py::TestJsonlRoundTrip::test_load_returns_what_was_written`,
+`::TestJsonlRoundTrip::test_one_annotation_per_line`). A line that is not an
+annotation raises a `ValueError` naming its line number
+(`::TestJsonlMalformed::test_line_that_is_not_json_names_its_line`,
+`::TestJsonlMalformed::test_line_missing_a_level_names_its_line`):
+
+```python
+from hidl import load_jsonl, write_jsonl
+
+write_jsonl(batch.results, "batch.jsonl")
+annotations = load_jsonl("batch.jsonl")
+```
+
 ### What the parser rejects
 
 A reply is parsed from the JSON in the model's text, with or without markdown

@@ -79,8 +79,9 @@ def parse_hidl_response(
 
     Args:
         raw: Raw string as returned by the vision LLM.
-        image_id: If supplied and the parsed ``id`` field is missing or empty,
-            this value is used as a fallback.
+        image_id: If supplied, the caller's identifier for the image. It
+            always replaces the ``id`` in the reply, so a model that echoes
+            the prompt's example id cannot give every image the same one.
 
     Returns:
         A :class:`~hidl.schema.HIDLAnnotation` instance.
@@ -91,8 +92,8 @@ def parse_hidl_response(
     json_str = extract_json(raw)
     data: dict[str, Any] = json.loads(json_str)
 
-    # Ensure the id field is present.
-    if not data.get("id") and image_id:
+    # The caller's id wins over whatever id the model wrote.
+    if image_id:
         data["id"] = image_id
 
     try:
