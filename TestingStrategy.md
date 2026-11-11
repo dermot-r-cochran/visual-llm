@@ -9,8 +9,8 @@ not a service. A language is testable in a way a service never is: zero
 runtime dependencies, no network, no model calls, so every property of the
 notation (schema, vocabulary, parsing, annotation modes, prompt assembly) can
 be pinned exactly and run in a fraction of a second. The suite leans into
-that: 157 tests across seven files, all pure, all verified passing locally on
-2026-11-10.
+that: 166 tests across eight files, all pure, all verified passing locally on
+2026-11-11.
 
 ## The suite (`tests/`, pytest)
 
@@ -20,6 +20,7 @@ that: 157 tests across seven files, all pure, all verified passing locally on
 | `test_vocabulary.py` | the controlled vocabulary — the terms the language admits |
 | `test_parser.py` | text → structure, including malformed input |
 | `test_annotator.py` | the annotation pipeline that produces documents, and a batch that keeps its good results when one reply is refused |
+| `test_jsonl.py` | that batch results written to JSON Lines load back as the same annotations, and that a malformed line is refused by its line number |
 | `test_modes.py` | the annotation detail modes (fast-scan, detailed, refinement) and their invariants |
 | `test_prompts.py` | the prompt templates handed to a vision model, and that their label lists match `hidl/vocabulary.py` |
 | `test_backends.py` | image encoding and MIME detection, and the request `OpenAIVisionBackend` builds, recorded by a stub `openai` module (no model, no network) |

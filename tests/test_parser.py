@@ -145,6 +145,15 @@ class TestParseHidlResponse:
         ann = parse_hidl_response(raw, image_id="FALLBACK_ID")
         assert ann.id == "FALLBACK_ID"
 
+    def test_caller_image_id_beats_reply_id(self):
+        raw = _to_str(FAST_SCAN_JSON)  # the reply says IMG_0001
+        ann = parse_hidl_response(raw, image_id="IMG_0042")
+        assert ann.id == "IMG_0042"
+
+    def test_reply_id_kept_without_caller_image_id(self):
+        ann = parse_hidl_response(_to_str(FAST_SCAN_JSON))
+        assert ann.id == "IMG_0001"
+
     def test_markdown_fence_parsed(self):
         raw = "```json\n" + _to_str(FAST_SCAN_JSON) + "\n```"
         ann = parse_hidl_response(raw)

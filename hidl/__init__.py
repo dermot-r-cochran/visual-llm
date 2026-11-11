@@ -6,6 +6,7 @@ large-scale scanning and clustering.
 """
 
 from hidl.annotator import BatchFailure, BatchResult, HIDLAnnotator
+from hidl.jsonl import load_jsonl, write_jsonl
 from hidl.modes import AnnotationMode
 from hidl.schema import (
     L0,
@@ -31,4 +32,6 @@ __all__ = [
     "L1Subject",
     "L2Object",
     "L2Relation",
+    "load_jsonl",
+    "write_jsonl",
 ]

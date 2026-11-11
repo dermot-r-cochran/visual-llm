@@ -160,8 +160,10 @@ class TestAnnotatorOutput:
         resp["id"] = "WRONG"
         annotator = HIDLAnnotator(MockVisionBackend(resp), canonicalize=False)
         ann = annotator.annotate(b"fake", image_id="CORRECT")
-        # Parser uses LLM id when present; image_id is only a fallback
-        assert ann.id == "WRONG"
+        # The caller's image_id wins over the id the model wrote (Dermot,
+        # 2026-11-11): a model echoing the prompt's example id must not
+        # relabel the image.
+        assert ann.id == "CORRECT"
 
     def test_mistyped_reply_raises_value_error_before_canonicalisation(self):
         # A list where a label belongs used to pass the parser and fail inside
@@ -288,6 +290,14 @@ class TestAnnotatorBatch:
         batch = annotator.annotate_batch(images)
         assert all(isinstance(r, HIDLAnnotation) for r in batch.results)
         assert [r.id for r in batch.results] == [img_id for img_id, _ in images]
+
+    def test_echoed_example_id_does_not_relabel_the_batch(self):
+        # Every reply carries the prompt's example id, IMG_0001; each result
+        # still carries the id of the image it came from.
+        annotator = HIDLAnnotator(MockVisionBackend(FAST_SCAN_RESPONSE))
+        assert FAST_SCAN_RESPONSE["id"] == "IMG_0001"
+        batch = annotator.annotate_batch([("A", b"fake"), ("B", b"fake"), ("C", b"fake")])
+        assert [r.id for r in batch.results] == ["A", "B", "C"]
 
     def test_bad_reply_in_the_middle_keeps_the_others(self):
         annotator = HIDLAnnotator(SequenceBackend([GOOD_REPLY, MISTYPED_REPLY, GOOD_REPLY]))
