@@ -68,6 +68,12 @@ agent drive the annotator in natural language without threading a mode argument
 through every call. (`tests/test_annotator.py::TestAnnotatorModeResolution::test_explicit_enum_mode`
 and `::TestAnnotatorModeResolution::test_instruction_infers_detailed`;
 `tests/test_modes.py::TestInferMode::test_refinement_takes_priority_over_detailed`.)
+A keyword matches as a whole word, never inside a longer one, so
+`"scan carefully"` stays `fast-scan` although "carefully" contains "full"
+(`tests/test_modes.py::TestInferModeWholeWords::test_keyword_inside_a_longer_word_does_not_match`;
+the forms that do match, word by word,
+`::TestInferModeWholeWords::test_each_detailed_word_and_its_listed_forms_match`,
+`::TestInferModeWholeWords::test_each_refinement_word_and_its_listed_forms_match`).
 
 ---
 
