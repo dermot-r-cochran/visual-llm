@@ -20,7 +20,11 @@ concurrency:
 jobs:
   test:
     name: pytest (Python ${{ matrix.python-version }})
-    runs-on: ubuntu-latest
+    # Pinned, not ubuntu-latest: ubuntu-latest moved to 26.04 in November
+    # 2026, and actions/python-versions builds 3.9 (the declared floor) only
+    # for 22.04 and 24.04, so the 3.9 job could not even install Python.
+    # Move this on when the floor rises or 24.04 runners retire.
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
