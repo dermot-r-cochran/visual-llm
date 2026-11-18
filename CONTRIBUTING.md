@@ -4,7 +4,7 @@ Contributions are welcome: bug reports, fixes, tests, documentation and focused 
 
 ## Before you start
 
-- For anything beyond a small fix, open an issue first describing the problem and the change you have in mind, so the approach can be agreed before you spend time on it.
+- For anything beyond a small fix, you may find it useful to open an issue first describing the problem and the change you have in mind, before you spend time on it.
 - The schema and the controlled vocabulary are the specification. The vocabulary lives in two places, `hidl/vocabulary.py` and the prompt in `hidl/prompts.py`; a change edits both, with the tests, in the same pull request.
 - The test suite makes no network or model calls, and stays that way.
 
