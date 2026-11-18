@@ -11,10 +11,9 @@ import base64
 import os
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Union
 
 # Type alias for an image source: file path, bytes, or a URL string.
-ImageSource = Union[str, Path, bytes]
+ImageSource = str | Path | bytes
 
 
 class VisionBackend(ABC):

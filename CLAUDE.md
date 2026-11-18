@@ -14,10 +14,10 @@ pytest                          # run all tests (config in pyproject.toml: testp
 pytest tests/test_parser.py     # one file
 pytest -k test_name             # one test
 pytest --cov=hidl --cov-fail-under=100  # what CI runs — coverage is a ratchet at the measured baseline
-ruff check .                    # lint (CI job; config in pyproject.toml: line-length 99, target py39)
+ruff check .                    # lint (CI job; config in pyproject.toml: line-length 99, target py311)
 ```
 
-CI (`.github/workflows/ci.yml`) runs the coverage-gated pytest on Python 3.9 and 3.13 — the declared floor and current stable — plus `ruff check .` and a stdlib doc check (`python .github/scripts/check_docs.py`: README test citations exist, links resolve, one front-matter block at most, the levels, modes and dependency claims match the code). Every README row or claim of a capability names the test that proves it, or says "no test yet" or "not yet implemented" (Dermot, 10 October 2026). Two consequences worth knowing before editing: raise the `--cov-fail-under` ratchet only in the change that adds the tests that earn it, and keep `from __future__ import annotations` at the top of modules so new-style unions (`X | None`) stay valid on 3.9.
+CI (`.github/workflows/ci.yml`) runs the coverage-gated pytest on Python 3.11 and 3.15 — the declared floor and current stable — plus `ruff check .` and a stdlib doc check (`python .github/scripts/check_docs.py`: README test citations exist, links resolve, one front-matter block at most, the levels, modes and dependency claims match the code). Every README row or claim of a capability names the test that proves it, or says "no test yet" or "not yet implemented" (Dermot, 10 October 2026). Two consequences worth knowing before editing: raise the `--cov-fail-under` ratchet only in the change that adds the tests that earn it, and keep `from __future__ import annotations` at the top of modules: since the floor rose to 3.11 (2026-11-18) new-style unions (`X | None`) no longer need it, but it still defers annotation evaluation and costs nothing.
 
 ## Architecture
 
@@ -43,7 +43,7 @@ The **vocabulary** (`hidl/vocabulary.py`) is frozensets of canonical labels plus
 
 Dermot's direction, 2026-10-11: the account-wide split recorded in `star-rangers`' `CLAUDE.md`, applied here. Opus is the default. Fable is kept for narrative prose and image prompts and has no work in this repository.
 
-- **Haiku: reading and trivial fixes.** Read-only searches, summarising a failing CI log, `check_docs.py` drift, and simple `ruff` fixes. The coverage gate on 3.9 and 3.13, `ruff` and the doc check catch its mistakes.
+- **Haiku: reading and trivial fixes.** Read-only searches, summarising a failing CI log, `check_docs.py` drift, and simple `ruff` fixes. The coverage gate on 3.11 and 3.15, `ruff` and the doc check catch its mistakes.
 - **Sonnet: code and tests.** Logic changes and new tests, including tests that raise the coverage ratchet. A test that merely passes is not necessarily one that checks the right thing, which is why this is not Haiku's. New parser behaviour still lands with both the accepting and the rejecting case.
 - **Opus: the protected parts.** The schema and the controlled vocabulary, which live in two places (`hidl/vocabulary.py` and `hidl/prompts.py`) and whose tests are the specification. No model below Opus edits these, even where a gate would catch the mistake.
 - **Opus reviews and approves** a Haiku or Sonnet subagent's diff, and it merges when CI is green. Opus escalates where a change needs a judgement it should not make alone: to Fable where one is available, otherwise to Dermot directly as choices (Dermot, 2026-10-11). Haiku may also work under a Sonnet subagent, its searches and summaries feeding Sonnet's job as input; approval still comes from Opus, never from Sonnet.

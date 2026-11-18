@@ -250,7 +250,7 @@ pip install -e ".[dev]"
 pytest
 ```
 
-Requires Python 3.9+.
+Requires Python 3.11+.
 
 ## Status
 
