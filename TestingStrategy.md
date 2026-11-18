@@ -65,7 +65,9 @@ reviewer's question.
   outstanding 39 findings fixed in the same change (mostly modern-annotation
   upgrades; every touched file defers annotation evaluation via
   `from __future__ import annotations`, so the new-style unions stay valid on
-  3.9).
+  3.9). On 2026-11-18 the floor rose to 3.11 and the matrix moved to 3.11
+  and 3.15, since 3.9 had reached end of life and was no longer built for
+  GitHub's default runner.
 - Round-trip properties (parse → `to_json()` → parse is a fixed point) are a
   natural `hypothesis` target for the parser and `HIDLAnnotation.to_json()`
   (there is no separate renderer) and would generalise the fixed-case tests.

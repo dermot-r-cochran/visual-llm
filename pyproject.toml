@@ -7,7 +7,7 @@ name = "visual-llm"
 version = "0.1.0"
 description = "HIDL – Hierarchical Image Description Language annotation system for large image datasets"
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.11"
 license = { text = "MIT" }
 dependencies = []
 
@@ -28,4 +28,4 @@ addopts = "-v"
 
 [tool.ruff]
 line-length = 99
-target-version = "py39"
+target-version = "py311"
