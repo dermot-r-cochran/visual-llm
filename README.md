@@ -83,6 +83,22 @@ the forms that do match, word by word,
 pip install -e ".[openai]"
 ```
 
+To depend on a release from another project, pin its tag:
+
+```bash
+pip install "visual-llm[openai] @ git+https://github.com/dermot-r-cochran/visual-llm@v0.1.0"
+```
+
+or, in that project's `pyproject.toml`:
+
+```toml
+dependencies = ["visual-llm[openai] @ git+https://github.com/dermot-r-cochran/visual-llm@v0.1.0"]
+```
+
+No release is tagged yet; the first, `v0.1.0`, is owed. Until it is pushed, put a commit SHA in place of `v0.1.0`.
+
+The `[openai]` extra brings the reference backend; leave it off for the zero-dependency core.
+
 ```python
 from hidl import HIDLAnnotator, AnnotationMode
 from hidl.backends import OpenAIVisionBackend
