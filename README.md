@@ -95,7 +95,7 @@ or, in that project's `pyproject.toml`:
 dependencies = ["visual-llm[openai] @ git+https://github.com/dermot-r-cochran/visual-llm@v0.1.0"]
 ```
 
-The tag shown is an example: no release is tagged yet, so until one is, put a commit SHA in place of `v0.1.0`.
+The tag shown, `v0.1.0`, is the first release, tagged on 18 November 2026. To depend on a commit that has no tag, put its SHA in place of `v0.1.0`.
 
 The `[openai]` extra brings the reference backend; leave it off for the zero-dependency core.
 
